@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- 13 Nov 2017, Rain, a game about the rain. and eyeballs -->
+	<script src="/pixi.min.js"></script>
+	<title>Rain</title>
+	<style type="text/css">
+	* {padding: 0; margin: 0}
+
+	</style>
+</head>
+<body>
+
+</body>
+<footer>
+	<script type="text/javascript">
+
+	var app = new PIXI.Application();
+	var rain =[];
+
+	function drawLine(x,y,){
+		var line = new PIXI.Graphics();
+		line.lineStyle(4, 0xFFFFFF, 1);
+		line.moveTo(x, y);
+		line.lineTo(x, y+30);
+		// line.x = x;
+		// line.y = y;
+		app.stage.addChild(line);
+	}
+	
+	
+	
+
+	// The application will create a canvas element for you that you
+	// can then insert into the DOM.
+	
+
+	function setup(){
+		document.body.appendChild(app.view);
+		app.renderer.view.style.position = "absolute";
+		app.renderer.view.style.display = "block";
+		app.renderer.autoResize = true;
+		app.renderer.resize(window.innerWidth, window.innerHeight);
+
+		//setup rain
+		for (var i = 0; i < 10; i++) {
+			rain.push({x: (Math.random() * window.innerWidth), y:0 + Math.random()*100 })
+		}
+	}
+	setup();
+
+	// drawLine(50,50);
+
+	
+
+	function gameLoop() {
+		//Loop this function at 60 frames per second
+		requestAnimationFrame(gameLoop);
+		console.log("drawing");
+
+		//Move the cat 1 pixel to the right each frame
+		// cat.x += 1;
+		for (var i = 0; i < rain.length; i++) {
+			rain.y+=20;
+			drawLine(rain[i].x,rain[i].y);
+		}
+
+		//Render the stage to see the animation
+		// app.renderer.render(app.stage);
+	}
+
+	//Start the game loop
+	gameLoop();
+	</script>
+</footer>
+</html>

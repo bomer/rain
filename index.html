@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<!-- Meta tags for mobile -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<link rel="shortcut icon" href="favicon.ico">
+	<link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="HandheldFriendly" content="True">
+	<meta name="MobileOptimized" content="720">
+	<meta name="viewport" content="width=device-width, target-densitydpi=300dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+	<meta name="format-detection" content="telephone=no" />
+	<title>Rain</title>
+
+	<style>
+		html,body{
+			margin:0;
+			overflow: hidden;
+		}
+		#canvas-container {
+			width: 100%;
+			text-align:center;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="canvas-container">
+		<canvas id="canvas" width="200" height="100" style="border:0px">
+		</canvas>
+	</div>
+
+	<script>
+//0,0 is top left in Canvas
+var mobileRatio = 9/16;
+// var height = window.innerHeight * window.devicePixelRatio;
+// var width=height / (16/9) * window.devicePixelRatio;
+var scale = window.devicePixelRatio;
+var height = window.innerHeight * window.devicePixelRatio;
+var width=window.innerWidth * window.devicePixelRatio;
+
+var player={};
+var gravity=.91/2 * scale;
+var keymovepower=0.55 * scale;
+var friction = 0.95 ;
+var blockwidth=width*0.1;
+var blockheight = height*0.05;
+var darkblue='rgba(0, 21, 61, 0.95)';
+var darkerblue = 'rgba(0, 10, 31, 1)';
+
+// var blocks=[{x:0.1,y:0.3}];
+var rain = [];
+var rainspeed=scale * 1.5;
+
+function init() {
+	canvas.width  = width
+	canvas.height = height;
+
+	
+	canvas.style.width = window.innerWidth + "px";
+	canvas.style.height = window.innerHeight + "px";
+
+	canvas.style.backgroundColor = 'rgba(0, 10, 31, 1)';
+	
+
+	canvas.imageSmoothingEnabled = true;
+
+	player.x=width*0.15; //Init player
+	player.y=80;
+	player.height=18;
+	player.xspeed=0;
+	player.yspeed=0;
+
+	//setup rain
+	for (var i = 0; i < 500; i++) {
+		rain.push({x: (Math.random() * width), y:0 + Math.random()*height*2-(height) ,xspeed:0,yspeed:rainspeed,length: 15 + Math.random()*15})
+	}
+}
+
+function drawLine(ctx,x,y,length=30){
+	
+	ctx.beginPath();
+	// ctx.lineStyle(4, 0xFFFFFF, 1);
+	ctx.strokeStyle='white';
+	ctx.moveTo(x, y);
+	ctx.lineTo(x, y+length);	
+	ctx.stroke();
+}
+
+function drawGame(){
+	var ctx = canvas.getContext("2d");
+	//draw Ball
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.beginPath();
+	ctx.fillStyle=darkblue;
+	ctx.strokeStyle=darkblue;
+	ctx.arc(player.x,player.y,player.height*scale,0,2*Math.PI);
+	ctx.stroke();
+	ctx.fill();
+
+	//Draw Blocks
+	for (var i = 0; i < rain.length; i++) {
+		// Create gradient	
+		var drop = rain[i];
+		// ctx.fillRect(block.x * width,block.y * height,blockwidth,blockheight);
+		drawLine(ctx,drop.x,drop.y,drop.length);
+	}
+}
+
+function detectHit(){	
+	for (var i = 0; i < blocks.length ; i++) {			
+		//Player Hit Detection of blocks, only if jump is not on cooldown
+		var block = blocks[i];
+		var xdif = player.x-(block.x * width);
+		var ydif = player.y-(block.y * height);
+		// console.log("xdif " + xdif + " ydif " + ydif);
+		if (xdif >= -player.height && xdif <= blockwidth ){ //x and y hit
+			if (ydif>=-player.height &&  ydif <= blockheight  + player.height){
+				console.log("SHIT A HIT");
+				player.yspeed*=-1;//.1;
+			}
+		}		
+	
+	}				
+}
+
+function updateRain(){
+	for (var i = 0; i < rain.length; i++) {
+		var drop = rain[i];
+		drop.yspeed+=rainspeed;
+		drop.yspeed*=friction;
+		drop.y+=drop.yspeed;		
+		if(drop.y>height){
+			drop.yspeed=rainspeed;
+			drop.y=-height*0.5;
+			drop.x=(Math.random() * width)
+		}
+	}
+}
+
+function updateGame(){
+
+	updateRain();
+	// detectHit()
+	//Gravity + movement
+	player.yspeed+=gravity;
+	if (player.jumpCountdown!=0)
+		player.jumpCountdown--;
+	//Calculate key movement for old school keyboards.
+	if (keys[37])	//Left arrow
+		player.xspeed-=keymovepower;
+	if (keys[39])	//Right arrow
+		player.xspeed+=keymovepower;
+
+	//Calculate gyro into player pos
+	player.xspeed*=friction;
+	//floor
+	if (player.y>=height - 50){
+		player.yspeed=0;
+	}
+	//Update player pos
+	player.x+=player.xspeed;
+	player.y+=player.yspeed;
+
+	if (player.x<0)
+		player.x=width;
+	if (player.x>width)
+		player.x=0;
+	
+	if (player.dead)
+		init()	
+}
+
+init()
+
+var keys = [];
+window.onkeyup = function(e) {keys[e.keyCode]=false;}
+window.onkeydown = function(e) {keys[e.keyCode]=true;}
+
+//Game Loop
+var ONE_FRAME_TIME = 1000 / 60 ;
+var mainloop = function() {
+	updateGame();
+	drawGame();
+};
+setInterval( mainloop, ONE_FRAME_TIME );
+
+</script>
+</body>
+</html>
