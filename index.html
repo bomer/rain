@@ -43,20 +43,34 @@ var width=window.innerWidth * window.devicePixelRatio;
 
 var player={};
 var gravity=.91/2 * scale;
-var keymovepower=0.55 * scale;
+var keymovepower=0.35 * scale;
 var friction = 0.95 ;
 var blockwidth=width*0.1;
 var blockheight = height*0.05;
 var darkblue='rgba(0, 21, 61, 0.95)';
 var darkerblue = 'rgba(0, 10, 31, 1)';
+var lightcolor = 'rgba(255, 239, 12, 0.8)';
+var darkererblue = 'rgba(0, 0, 0, ';
 
 // var blocks=[{x:0.1,y:0.3}];
 var rain = [];
 var rainspeed=scale * 1.5;
 
+var spritenames=["char1.png","char2.png","char3.png","char4.png"];
+var sprites=[];
+var framecount=0;
+var lights=[{x:0.8,y:0.8}];
+
 function init() {
 	canvas.width  = width
 	canvas.height = height;
+
+	//Load sprites
+	for (var i = 0; i < spritenames.length; i++) {
+		var drawing = new Image();
+		drawing.src = 'img/' + spritenames[i];
+		sprites.push({name: spritenames[i],image:drawing});
+	}
 
 	
 	canvas.style.width = window.innerWidth + "px";
@@ -69,9 +83,11 @@ function init() {
 
 	player.x=width*0.15; //Init player
 	player.y=80;
-	player.height=18;
+	player.height=height*0.04;
 	player.xspeed=0;
 	player.yspeed=0;
+	player.frame=0;
+	player.currentsprite=0;
 
 	//setup rain
 	for (var i = 0; i < 500; i++) {
@@ -91,14 +107,21 @@ function drawLine(ctx,x,y,length=30){
 
 function drawGame(){
 	var ctx = canvas.getContext("2d");
-	//draw Ball
+
+	
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+	//draw Plyaer
 	ctx.beginPath();
 	ctx.fillStyle=darkblue;
 	ctx.strokeStyle=darkblue;
-	ctx.arc(player.x,player.y,player.height*scale,0,2*Math.PI);
-	ctx.stroke();
-	ctx.fill();
+
+ctx.drawImage(sprites[player.currentsprite].image,player.x - (player.height) ,player.y - player.height,player.height * 2,player.height * 2);
+
+	// ctx.arc(player.x,player.y,player.height*scale,0,2*Math.PI);	
+	// ctx.stroke();
+	// ctx.fill();
 
 	//Draw Blocks
 	for (var i = 0; i < rain.length; i++) {
@@ -107,6 +130,25 @@ function drawGame(){
 		// ctx.fillRect(block.x * width,block.y * height,blockwidth,blockheight);
 		drawLine(ctx,drop.x,drop.y,drop.length);
 	}
+
+	//Dark Overlay
+	if(framecount<120)
+		bgtransparency= darkererblue + (0.8-framecount/250) + ')';
+
+	ctx.fillStyle=bgtransparency;
+	ctx.rect(0,0,width,height);
+	ctx.fill();
+	// ctx.endPath();
+
+	//Lights
+	ctx.beginPath();
+	for (var i = 0; i < lights.length; i++) {
+		var light = lights[i];
+		ctx.fillStyle=lightcolor;
+		ctx.rect(width*light.x,height*light.y,100,100);	
+		ctx.fill();
+	}
+	ctx.endPath();
 }
 
 function detectHit(){	
@@ -143,6 +185,7 @@ function updateRain(){
 function updateGame(){
 
 	updateRain();
+	framecount++;
 	// detectHit()
 	//Gravity + movement
 	player.yspeed+=gravity;
@@ -151,13 +194,19 @@ function updateGame(){
 	//Calculate key movement for old school keyboards.
 	if (keys[37])	//Left arrow
 		player.xspeed-=keymovepower;
-	if (keys[39])	//Right arrow
+	if (keys[39]){	//Right arrow
 		player.xspeed+=keymovepower;
+		player.frame++;
+		if(player.frame>=60)
+			player.frame=0;
+		player.currentsprite=Math.floor(player.frame/15);
+		console.log(player.currentsprite);
 
+	}
 	//Calculate gyro into player pos
 	player.xspeed*=friction;
 	//floor
-	if (player.y>=height - 50){
+	if (player.y>=height-150){
 		player.yspeed=0;
 	}
 	//Update player pos
