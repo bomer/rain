@@ -49,7 +49,7 @@ var blockwidth=width*0.1;
 var blockheight = height*0.05;
 var darkblue='rgba(0, 21, 61, 0.95)';
 var darkerblue = 'rgba(0, 10, 31, 1)';
-var lightcolor = 'rgba(255, 239, 12, 0.8)';
+var lightcolor = 'rgba(150, 150, 150, 0.6)';
 var darkererblue = 'rgba(0, 0, 0, ';
 
 // var blocks=[{x:0.1,y:0.3}];
@@ -59,7 +59,7 @@ var rainspeed=scale * 1.5;
 var spritenames=["char1.png","char2.png","char3.png","char4.png"];
 var sprites=[];
 var framecount=0;
-var lights=[{x:0.8,y:0.8}];
+var lights=[{x:0.2,y:0.8}];
 
 function init() {
 	canvas.width  = width
@@ -117,11 +117,8 @@ function drawGame(){
 	ctx.fillStyle=darkblue;
 	ctx.strokeStyle=darkblue;
 
-ctx.drawImage(sprites[player.currentsprite].image,player.x - (player.height) ,player.y - player.height,player.height * 2,player.height * 2);
+	ctx.drawImage(sprites[player.currentsprite].image,player.x - (player.height) ,player.y - player.height,player.height * 2,player.height * 2);
 
-	// ctx.arc(player.x,player.y,player.height*scale,0,2*Math.PI);	
-	// ctx.stroke();
-	// ctx.fill();
 
 	//Draw Blocks
 	for (var i = 0; i < rain.length; i++) {
@@ -140,12 +137,14 @@ ctx.drawImage(sprites[player.currentsprite].image,player.x - (player.height) ,pl
 	ctx.fill();
 	// ctx.endPath();
 
+	// ctx.globalCompositeOperation = "overlay";
+
 	//Lights
 	ctx.beginPath();
 	for (var i = 0; i < lights.length; i++) {
 		var light = lights[i];
 		ctx.fillStyle=lightcolor;
-		ctx.rect(width*light.x,height*light.y,100,100);	
+		ctx.rect(width*light.x,height*light.y,300,300);	
 		ctx.fill();
 	}
 	ctx.endPath();
